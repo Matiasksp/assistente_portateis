@@ -85,7 +85,7 @@
      </div>
    </div>
  </section>
- <!-- RESPOSTAS -->
+ <!--RESPOSTAS-->
  <section aria-labelledby="respostas-title">
    <div class="section-header">
      <h2 id="respostas-title">Respostas</h2>
@@ -107,7 +107,7 @@
 </main>
 
 <script>
-/* ===== Banner de erros, evita bucle de carregamento ===== */
+/*Banner de erros, evita bucle de carregamento*/
 (function(){
   var banner = document.getElementById('error-banner');
   window.addEventListener('error', function(ev){
@@ -117,7 +117,7 @@
     }
   });
 })();
-/* ===== Utilitários ===== */
+/*Utilitários*/
 function sleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); } // delay para mostrar "a gerar"
 function el(id){ return document.getElementById(id); }
 function setProgress(actual, max){ // contador de perguntas
@@ -220,7 +220,7 @@ var QUESTIONS = [
     options:[{key:'sim', label:'Sim'},{key:'nao', label:'Não'},{key:'na', label:'Não aplicável'}]
   }
 ];
-/* ===== Hipóteses ===== */
+/*Hipóteses*/
 var HYPOTHESES = [
   { id:'ac_adapter_bad',
     name:'Carregador incompatível/avariado',
@@ -370,19 +370,19 @@ var HYPOTHESES = [
     ], severity:'baixa'
   }
 ];
-/* ===== Parâmetros de convergência agressivos ===== */
+/*Parâmetros de convergência= */
 var STRICT_PRIMARY = true; // restringe às hipóteses do sintoma escolhido
 var TOP_KEEP_EARLY = 6;    // top N antes de 5 perguntas
 var TOP_KEEP_LATE = 4;     // top N após 5 perguntas (força ≤ 4)
 var MARGIN_KEEP = 2;       // mantém hipóteses a <= 2 pts do máximo
 var ELIMINATION_THRESHOLD = -2; // elimina se score < -2
-/* ===== Estado ===== */
+/*Estado*/
 var STATE = {
   asked: [], answers: {}, maxQuestions: 30, unlimited: false, finished: false,
   candidates: (function(){ var arr=[]; for (var i=0;i<HYPOTHESES.length;i++){ var h=HYPOTHESES[i], c={}; for (var k in h) c[k]=h[k]; c.score=0; c.eliminated=false; arr.push(c); } return arr; })(),
   lastRenderHash: ''
 };
-/* ===== compatibilidade ===== */
+/*compatibilidade*/
 function getFirstQuestion(){
   for (var i=0;i<QUESTIONS.length;i++){ if (QUESTIONS[i].first) return QUESTIONS[i]; }
   return QUESTIONS[0];
@@ -392,7 +392,7 @@ function unansweredQuestions(){
   var out=[]; for (var j=0;j<QUESTIONS.length;j++){ if (!askedIds[QUESTIONS[j].id]) out.push(QUESTIONS[j]); }
   return out;
 }
-/* ===== Regras duras (eliminação/impulsos) para convergência ===== */
+/*Regras duras (eliminação/impulsos) para convergência*/
 function applyHardConstraints(candidates, answers){
   var main = answers['symptom_main'];
   // Sintoma: não liga
@@ -492,7 +492,7 @@ function applyHardConstraints(candidates, answers){
   }
   return candidates;
 }
-/* ===== Escolha da próxima pergunta ===== */
+/*Escolha da próxima pergunta*/
 function pickNextQuestion(){
   var first = getFirstQuestion();
   if (!STATE.answers[first.id]) return first;
@@ -514,10 +514,10 @@ function pickNextQuestion(){
   }
   return best;
 }
-/* ===== Scoring ===== */
+/*Puntuação*/
 function updateCandidatesScores(){
   var answers = STATE.answers;
-  // Deep copy das hipóteses
+  //Deep copy das hipóteses
   var candidates = [];
   for (var i=0;i<HYPOTHESES.length;i++){
     var h = HYPOTHESES[i], c = {};
@@ -525,7 +525,7 @@ function updateCandidatesScores(){
     c.score=0; c.eliminated=false;
     candidates.push(c);
   }
-  // Filtro estrito pelo sintoma principal
+  //Filtro estrito pelo sintoma principal
   var main = answers['symptom_main'];
   if (main && STRICT_PRIMARY){
     var filtered = [];
@@ -539,7 +539,7 @@ function updateCandidatesScores(){
       else candidates[i].score -= 2;
     }
   }
-  // Pontuação por evidências
+  //Pontuação por evidências
   for (var qid in answers){
     var ans = answers[qid];
     for (i=0;i<candidates.length;i++){
@@ -549,13 +549,13 @@ function updateCandidatesScores(){
       if (typeof w === 'number') candidates[i].score += w;
     }
   }
-  // Aplicar regras duras (eliminação e reforço)
+  //Aplicar regras duras (eliminação e reforço)
   candidates = applyHardConstraints(candidates, answers);
   // Eliminar por contradição forte
   for (i=0;i<candidates.length;i++){
     if (candidates[i].score < ELIMINATION_THRESHOLD) candidates[i].eliminated = true;
   }
-  // Poda por top‑N e margem (mais forte após 5 perguntas)
+  //Filtragem de hipóteses após 5 perguntas.
   var vivos = []; for (i=0;i<candidates.length;i++){ if (!candidates[i].eliminated) vivos.push(candidates[i]); }
   vivos.sort(function(a,b){ return b.score - a.score; });
   if (vivos.length){
@@ -571,13 +571,13 @@ function updateCandidatesScores(){
       }
     }
   }
-  // Ordenar e guardar
+  //Ordenar e guardar
   candidates.sort(function(a,b){
     if (a.eliminated !== b.eliminated) return a.eliminated ? 1 : -1;
     return b.score - a.score;
   });
   STATE.candidates = candidates;
-  updateHypCount(); // mantém contador visível
+  updateHypCount(); //mantém contador visível
 }
 function remainingHypotheses(){
   var rem=[]; for (var i=0;i<STATE.candidates.length;i++){ if (!STATE.candidates[i].eliminated) rem.push(STATE.candidates[i]); }
@@ -595,7 +595,7 @@ function updateHypCount(){
   var cnt = remainingHypotheses().length;
   var hc = el('hyp-count'); if (hc) hc.textContent = 'Hipóteses: ' + cnt + (cnt<=4 ? ' (resposta disponível)' : '');
 }
-/* ===== Renderização ===== */
+/*Renderização*/
 function renderQuestion(){
   try{
     if (STATE.finished){ el('question-text').textContent='Diagnóstico concluído.'; el('options').innerHTML=''; return; }
@@ -612,7 +612,7 @@ function renderQuestion(){
     el('question-text').textContent = q.text;
     el('options').innerHTML = '';
 
-    // Botões das opções normais
+    //Botões das opções normais
     for (var i=0;i<q.options.length;i++){
       var opt = q.options[i];
       var btn = document.createElement('button');
@@ -622,7 +622,7 @@ function renderQuestion(){
       el('options').appendChild(btn);
     }
 
-    //Botão para omitir pergunta (não mostra em perguntas obrigatórias)
+    //Botão para omitir pergunta
     if (ALWAYS_ALLOW_OMIT && MANDATORY_IDS.indexOf(q.id) === -1) {
       var omitBtn = document.createElement('button');
       omitBtn.id = 'omit-btn';
@@ -702,7 +702,7 @@ function renderAnswers(){
     if (isUniqueSolution() && solutionActions){ solutionActions.style.display='flex'; }
   }, 400);
 }
-/* ===== Interacção ===== */
+/*Interacção*/
 function onAnswer(question, option){
   STATE.answers[question.id] = option.key;
   STATE.asked.push({ id:question.id, text:question.text, optionKey:option.key, optionLabel:option.label, short:shortLabel(question.id) });
@@ -724,7 +724,7 @@ function shortLabel(qid){
   };
   return map[qid] || qid;
 }
-/* ===== Reinício e limites ===== */
+/*Reinício e limites*/
 function resetAssistant(){
   STATE.asked=[]; STATE.answers={}; STATE.unlimited=false; STATE.finished=false;
   STATE.candidates = (function(){ var arr=[]; for (var i=0;i<HYPOTHESES.length;i++){ var h=HYPOTHESES[i], c={}; for (var k in h) c[k]=h[k]; c.score=0; c.eliminated=false; arr.push(c);} return arr; })();
@@ -740,7 +740,7 @@ function resetAssistant(){
   renderQuestion();
 }
 function continueUnlimited(){ STATE.unlimited=true; var limit = el('limit-actions'); if (limit) limit.style.display='none'; renderQuestion(); }
-/* ===== Ações pós-solução ===== */
+/*Ações pós-solução*/
 function handleWorked(){
   var answersWrap = el('answers'); var card = document.createElement('div'); card.className='card';
   card.innerHTML = '<div class="row" style="justify-content:space-between"><strong>Excelente! Parece resolvido.</strong><span class="status status-final">Encerrado</span></div><div class="tips">Podes reiniciar o assistente para outro caso.</div>';
@@ -753,7 +753,7 @@ function handleNotWorked(){
   var sol = el('solution-actions'); if (sol) sol.style.display='none'; 
   renderAnswers(); renderQuestion(); updateHypCount();
 }
-/* ===== Eventos ===== */
+/*Eventos*/
 document.addEventListener('DOMContentLoaded', function(){
   var rb = el('reset-btn'); if (rb) rb.addEventListener('click', resetAssistant);
   var lrb = el('limit-reset-btn'); if (lrb) lrb.addEventListener('click', resetAssistant);
